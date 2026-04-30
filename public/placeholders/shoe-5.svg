@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="g5" x1="0%" y1="0%" x2="100%" y2="100%" gradientTransform="rotate(21.85 0.5 0.5)">
+      <stop offset="0%" stop-color="#3a2a48"/>
+      <stop offset="55%" stop-color="#1a141c"/>
+      <stop offset="100%" stop-color="#08060a"/>
+    </linearGradient>
+    <linearGradient id="gl5" x1="0%" y1="0%" x2="100%" y2="100%" gradientTransform="rotate(21.85 0.5 0.5)">
+      <stop offset="0%" stop-color="#b8a4be"/>
+      <stop offset="55%" stop-color="#e1d5e3"/>
+      <stop offset="100%" stop-color="#efe6f0"/>
+    </linearGradient>
+    <radialGradient id="r5" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.18)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+    <radialGradient id="rl5" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.5)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+    <filter id="b5"><feGaussianBlur stdDeviation="40"/></filter>
+  </defs>
+  <style>
+    .l { display: none; }
+    @media (prefers-color-scheme: light) {
+      .d { display: none; }
+      .l { display: inline; }
+    }
+  </style>
+  <g class="d">
+    <rect width="800" height="1000" fill="url(#g5)"/>
+    <ellipse cx="400" cy="600" rx="320" ry="170" fill="#1a141c" opacity="0.55" filter="url(#b5)"/>
+    <ellipse cx="380" cy="560" rx="270" ry="120" fill="#3a2a48" opacity="0.75" filter="url(#b5)"/>
+    <rect width="800" height="1000" fill="url(#r5)"/>
+    <text x="40" y="960" font-family="ui-monospace, Menlo, monospace" font-size="22" fill="rgba(255,255,255,0.5)" letter-spacing="4">CADLLERY · SAMPLE 05</text>
+  </g>
+  <g class="l">
+    <rect width="800" height="1000" fill="url(#gl5)"/>
+    <ellipse cx="400" cy="600" rx="320" ry="170" fill="#e1d5e3" opacity="0.55" filter="url(#b5)"/>
+    <ellipse cx="380" cy="560" rx="270" ry="120" fill="#b8a4be" opacity="0.75" filter="url(#b5)"/>
+    <rect width="800" height="1000" fill="url(#rl5)"/>
+    <text x="40" y="960" font-family="ui-monospace, Menlo, monospace" font-size="22" fill="rgba(0,0,0,0.45)" letter-spacing="4">CADLLERY · SAMPLE 05</text>
+  </g>
+</svg>
