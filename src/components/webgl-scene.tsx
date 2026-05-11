@@ -141,17 +141,31 @@ export function WebGLScene({ theme }: Props) {
     const container = containerRef.current;
     if (!container) return;
 
+    const isCoarsePointer =
+      typeof window !== "undefined" &&
+      window.matchMedia("(pointer: coarse)").matches;
+
     const renderer = new Renderer({
       alpha: false,
       antialias: false,
-      dpr: Math.min(window.devicePixelRatio || 1, 1.75),
+      // Lower DPR on touch devices keeps mobile Safari from re-allocating
+      // large drawing buffers during URL-bar resize events.
+      dpr: Math.min(window.devicePixelRatio || 1, isCoarsePointer ? 1.25 : 1.75),
       powerPreference: "high-performance",
     });
     const gl = renderer.gl;
     container.appendChild(gl.canvas);
+    // Pin the canvas to the visual viewport so URL-bar resize on iOS Safari
+    // doesn't force a buffer reallocation mid-scroll (the source of flicker).
+    // Sized via JS below; promoted to its own GPU layer.
+    gl.canvas.style.position = "absolute";
+    gl.canvas.style.inset = "0";
     gl.canvas.style.width = "100%";
     gl.canvas.style.height = "100%";
     gl.canvas.style.display = "block";
+    gl.canvas.style.transform = "translateZ(0)";
+    gl.canvas.style.backfaceVisibility = "hidden";
+    gl.canvas.style.willChange = "transform";
 
     const palette = PALETTES[theme];
 
@@ -173,12 +187,29 @@ export function WebGLScene({ theme }: Props) {
     programRef.current = program;
     const mesh = new Mesh(gl, { geometry, program });
 
+    let lastW = 0;
+    let lastH = 0;
     const resize = () => {
-      const { clientWidth, clientHeight } = container;
-      renderer.setSize(clientWidth, clientHeight);
-      program.uniforms.uResolution.value.set(clientWidth, clientHeight);
+      // Use innerWidth/Height so iOS Safari's URL-bar collapse (which only
+      // changes layout viewport, not visual viewport) doesn't trigger resizes.
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      if (w === lastW && h === lastH) return;
+      lastW = w;
+      lastH = h;
+      renderer.setSize(w, h);
+      program.uniforms.uResolution.value.set(w, h);
     };
     resize();
+
+    let resizeRaf: number | null = null;
+    const onResize = () => {
+      if (resizeRaf !== null) return;
+      resizeRaf = requestAnimationFrame(() => {
+        resizeRaf = null;
+        resize();
+      });
+    };
 
     const onMove = (e: PointerEvent) => {
       mouseTargetRef.current.x = e.clientX / window.innerWidth;
@@ -212,17 +243,21 @@ export function WebGLScene({ theme }: Props) {
       rafRef.current = requestAnimationFrame(loop);
     };
 
-    const ro = new ResizeObserver(resize);
-    ro.observe(container);
-    window.addEventListener("pointermove", onMove, { passive: true });
-    window.addEventListener("pointerleave", onLeave);
+    window.addEventListener("resize", onResize, { passive: true });
+    window.addEventListener("orientationchange", onResize, { passive: true });
+    if (!isCoarsePointer) {
+      window.addEventListener("pointermove", onMove, { passive: true });
+      window.addEventListener("pointerleave", onLeave);
+    }
     document.addEventListener("visibilitychange", onVisibility);
 
     loop();
 
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      ro.disconnect();
+      if (resizeRaf !== null) cancelAnimationFrame(resizeRaf);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerleave", onLeave);
       document.removeEventListener("visibilitychange", onVisibility);

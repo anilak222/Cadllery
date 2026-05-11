@@ -90,8 +90,10 @@ export function SiteHeader() {
 
       <div
         className={cn(
-          "md:hidden grid overflow-hidden border-b border-border/60 bg-background/95 backdrop-blur-xl transition-[grid-template-rows] duration-500 ease-out",
-          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+          "md:hidden grid overflow-hidden bg-background/95 backdrop-blur-xl transition-[grid-template-rows] duration-500 ease-out",
+          open
+            ? "grid-rows-[1fr] border-b border-border/60"
+            : "grid-rows-[0fr]"
         )}
       >
         <div className="overflow-hidden">

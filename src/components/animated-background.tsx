@@ -28,6 +28,13 @@ export function AnimatedBackground() {
     <div
       ref={containerRef}
       aria-hidden
+      style={{
+        // Promote to its own compositor layer so iOS Safari doesn't
+        // re-rasterize the WebGL layer alongside scrolling content.
+        transform: "translateZ(0)",
+        backfaceVisibility: "hidden",
+        isolation: "isolate",
+      }}
       className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
     >
       <div className="absolute inset-0 bg-background" />
