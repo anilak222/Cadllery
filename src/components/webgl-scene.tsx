@@ -152,6 +152,9 @@ export function WebGLScene({ theme }: Props) {
       // large drawing buffers during URL-bar resize events.
       dpr: Math.min(window.devicePixelRatio || 1, isCoarsePointer ? 1.25 : 1.75),
       powerPreference: "high-performance",
+      // Hold the previous frame in the GPU buffer so iOS Safari can re-blit
+      // the canvas during URL-bar transitions without seeing a cleared frame.
+      preserveDrawingBuffer: true,
     });
     const gl = renderer.gl;
     container.appendChild(gl.canvas);

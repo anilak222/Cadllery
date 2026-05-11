@@ -29,10 +29,11 @@ export function AnimatedBackground() {
       ref={containerRef}
       aria-hidden
       style={{
-        // Promote to its own compositor layer so iOS Safari doesn't
-        // re-rasterize the WebGL layer alongside scrolling content.
-        transform: "translateZ(0)",
-        backfaceVisibility: "hidden",
+        // Isolate the stacking context so blend-modes / overlays above the
+        // canvas don't force compositor reads of unrelated page content.
+        // NOTE: do NOT apply `transform` here — applying any transform to a
+        // `position: fixed` element causes iOS Safari to re-project it on
+        // every scroll frame during URL-bar transitions (visible as flicker).
         isolation: "isolate",
       }}
       className="pointer-events-none fixed inset-0 z-0 overflow-hidden"

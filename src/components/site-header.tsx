@@ -34,7 +34,11 @@ export function SiteHeader() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 w-full transition-all duration-300",
+        // Limit the transition to color properties — transitioning
+        // `backdrop-filter` (under `transition-all`) makes iOS Safari
+        // re-read the WebGL canvas behind the header on every scroll
+        // tick across the 12px threshold, which shows as flicker.
+        "sticky top-0 z-40 w-full transition-[background-color,border-color,color] duration-300",
         scrolled
           ? "border-b border-border/60 bg-background/70 backdrop-blur-xl"
           : "border-b border-transparent"
