@@ -52,7 +52,10 @@ export function ImageLightbox({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogTitle className="sr-only">{title ?? "Image preview"}</DialogTitle>
-        <div className="relative mx-auto flex h-[100svh] w-screen max-w-[100vw] items-center justify-center px-4 py-12 sm:px-12">
+        <div
+          data-lenis-prevent
+          className="relative mx-auto flex h-[100svh] w-screen max-w-[100vw] items-center justify-center px-4 py-12 sm:px-12"
+        >
           {current && (
             <div className="relative flex h-full w-full items-center justify-center">
               <Image

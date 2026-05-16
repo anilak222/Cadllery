@@ -74,6 +74,16 @@
   --font-sans: var(--font-sans);
   --font-display: var(--font-display);
   --font-mono: var(--font-mono);
+  --animate-shimmer: shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 @layer base {
@@ -83,12 +93,35 @@
   html {
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    /* Lenis handles smoothing on the wheel/keyboard — disable the native
+     * smooth-scroll so the two don't fight. */
+    scroll-behavior: auto;
   }
   body {
     background: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans), system-ui, sans-serif;
     overflow-x: hidden;
+    /* Avoid the iOS "bounce" propagating into nested scroll containers. */
+    overscroll-behavior-y: none;
+  }
+
+  /* Lenis runtime hooks. Lenis adds these classes to <html> at init. */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+  .lenis.lenis-stopped {
+    overflow: clip;
+  }
+  .lenis.lenis-scrolling iframe {
+    pointer-events: none;
   }
   ::selection {
     background: var(--accent);

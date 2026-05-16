@@ -222,45 +222,75 @@ export function WebGLScene({ theme }: Props) {
       mouseTargetRef.current.x = 0.5;
       mouseTargetRef.current.y = 0.5;
     };
-    const onVisibility = () => {
-      visibleRef.current = !document.hidden;
-      if (visibleRef.current) {
-        startRef.current = performance.now() - lastT * 1000;
-        loop();
-      } else if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
+
+    // Pause rendering while the user scrolls on touch devices. With
+    // preserveDrawingBuffer: true, the last frame stays on the canvas, so
+    // iOS Safari can hand 100% of its GPU bandwidth to the scroll compositor.
+    let isScrolling = false;
+    let scrollIdleTimer: number | null = null;
+    const onScroll = () => {
+      isScrolling = true;
+      if (scrollIdleTimer !== null) window.clearTimeout(scrollIdleTimer);
+      scrollIdleTimer = window.setTimeout(() => {
+        isScrolling = false;
+      }, 180);
     };
 
+    // Cap mobile framerate. Mobile GPUs running this shader at 60Hz while
+    // the browser tries to scroll at 120Hz is the main remaining source of
+    // visible jank.
+    const targetFps = isCoarsePointer ? 30 : 60;
+    const frameInterval = 1000 / targetFps;
+    let lastFrameAt = 0;
     let lastT = 0;
-    const loop = () => {
-      const t = (performance.now() - startRef.current) / 1000;
+
+    const loop = (now: number) => {
+      rafRef.current = requestAnimationFrame(loop);
+
+      if (isCoarsePointer && isScrolling) return;
+
+      const delta = now - lastFrameAt;
+      if (delta < frameInterval - 0.5) return;
+      lastFrameAt = now;
+
+      const t = (now - startRef.current) / 1000;
       lastT = t;
-      // smooth mouse
       mouseRef.current.x += (mouseTargetRef.current.x - mouseRef.current.x) * 0.05;
       mouseRef.current.y += (mouseTargetRef.current.y - mouseRef.current.y) * 0.05;
       program.uniforms.uTime.value = t;
       program.uniforms.uMouse.value.set(mouseRef.current.x, mouseRef.current.y);
       renderer.render({ scene: mesh });
-      rafRef.current = requestAnimationFrame(loop);
+    };
+
+    const onVisibility = () => {
+      visibleRef.current = !document.hidden;
+      if (visibleRef.current && rafRef.current === null) {
+        startRef.current = performance.now() - lastT * 1000;
+        rafRef.current = requestAnimationFrame(loop);
+      } else if (!visibleRef.current && rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
     };
 
     window.addEventListener("resize", onResize, { passive: true });
     window.addEventListener("orientationchange", onResize, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
     if (!isCoarsePointer) {
       window.addEventListener("pointermove", onMove, { passive: true });
       window.addEventListener("pointerleave", onLeave);
     }
     document.addEventListener("visibilitychange", onVisibility);
 
-    loop();
+    rafRef.current = requestAnimationFrame(loop);
 
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       if (resizeRaf !== null) cancelAnimationFrame(resizeRaf);
+      if (scrollIdleTimer !== null) window.clearTimeout(scrollIdleTimer);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("orientationchange", onResize);
+      window.removeEventListener("scroll", onScroll);
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerleave", onLeave);
       document.removeEventListener("visibilitychange", onVisibility);

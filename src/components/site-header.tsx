@@ -40,7 +40,10 @@ export function SiteHeader() {
         // tick across the 12px threshold, which shows as flicker.
         "sticky top-0 z-40 w-full transition-[background-color,border-color,color] duration-300",
         scrolled
-          ? "border-b border-border/60 bg-background/70 backdrop-blur-xl"
+          ? // On mobile use a near-opaque solid bg (no backdrop-filter) so
+            // Safari isn't forced to read the WebGL canvas behind the header
+            // every scroll frame. Desktop keeps the translucent blur.
+            "border-b border-border/60 bg-background/95 md:bg-background/70 md:backdrop-blur-xl"
           : "border-b border-transparent"
       )}
     >
@@ -94,7 +97,9 @@ export function SiteHeader() {
 
       <div
         className={cn(
-          "md:hidden grid overflow-hidden bg-background/95 backdrop-blur-xl transition-[grid-template-rows] duration-500 ease-out",
+          // Solid bg on mobile (no backdrop-filter) for the same reason as
+          // the scrolled header: avoid forcing canvas reads during scroll.
+          "md:hidden grid overflow-hidden bg-background transition-[grid-template-rows] duration-500 ease-out",
           open
             ? "grid-rows-[1fr] border-b border-border/60"
             : "grid-rows-[0fr]"
